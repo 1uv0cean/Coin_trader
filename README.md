@@ -16,7 +16,7 @@ Python 가상화폐 자동매매프로그램 입니다^~^
 
 - 발급받은 키를 upbit.txt에 한줄씩 복사 후 붙여넣기
 
-- Python,Anaconda 및 기타 python module 설치
+- Python, Anaconda 및 기타 python module 설치
 
 -----------------------------------------------------
 
