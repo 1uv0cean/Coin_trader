@@ -1,0 +1,122 @@
+[
+  {
+    "timestamp": "2025-08-09T19:04:40.653359",
+    "type": "BUY",
+    "ticker": "KRW-ETH",
+    "price": 391.80149346,
+    "qty": 13.612385,
+    "note": "Stage4: defensive TF",
+    "tp": 399.83342407593,
+    "sl": 387.8834785254
+  },
+  {
+    "timestamp": "2025-08-09T19:04:43.511101",
+    "type": "BUY",
+    "ticker": "KRW-ENA",
+    "price": 524722.14527244,
+    "qty": 0.011129,
+    "note": "Stage4: defensive TF",
+    "tp": 535478.9492505251,
+    "sl": 519474.9238197156
+  },
+  {
+    "timestamp": "2025-08-09T19:34:39.692084",
+    "type": "BUY",
+    "ticker": "KRW-ENA",
+    "price": 1004.0,
+    "qty": 6.373274,
+    "note": "Stage5: BB scalp",
+    "tp": 1003.451475,
+    "sl": 989.3649550955406
+  },
+  {
+    "timestamp": "2025-08-09T20:41:53.453399",
+    "type": "BUY",
+    "ticker": "KRW-ENA",
+    "price": 1014.0,
+    "qty": 6.31042,
+    "note": "Stage5: BB scalp",
+    "tp": 1029.2099999999998,
+    "sl": 999.3582645112474
+  },
+  {
+    "timestamp": "2025-08-09T20:44:06.394860",
+    "type": "BUY",
+    "ticker": "KRW-ENS",
+    "price": 40620.0,
+    "qty": 0.142916,
+    "note": "Stage4: defensive TF",
+    "tp": 41462.915,
+    "sl": 40223.7
+  },
+  {
+    "timestamp": "2025-08-09T22:24:53.637332",
+    "type": "BUY",
+    "ticker": "KRW-XRP",
+    "price": 4531.0,
+    "qty": 1.243071,
+    "note": "Stage4: defensive TF",
+    "tp": 4623.885499999999,
+    "sl": 4485.69
+  },
+  {
+    "timestamp": "2025-08-10T12:08:10.500087",
+    "type": "BUY",
+    "ticker": "KRW-ENS",
+    "price": 41040.0,
+    "qty": 0.126395,
+    "note": "Stage4: defensive TF",
+    "tp": 41860.909999999996,
+    "sl": 40609.8
+  },
+  {
+    "timestamp": "2025-08-10T12:08:12.670432",
+    "type": "BUY",
+    "ticker": "KRW-ENA",
+    "price": 1020.0,
+    "qty": 5.565743,
+    "note": "Stage4: defensive TF",
+    "tp": 1040.9099999999999,
+    "sl": 1009.8
+  },
+  {
+    "timestamp": "2025-08-10T12:14:53.093842",
+    "type": "BUY",
+    "ticker": "KRW-ENS",
+    "price": 40980.0,
+    "qty": 0.188774,
+    "note": "Stage4: defensive TF",
+    "tp": 41799.68,
+    "sl": 40550.4
+  },
+  {
+    "timestamp": "2025-08-10T12:16:00.354129",
+    "type": "BUY",
+    "ticker": "KRW-ETH",
+    "price": 5835000.0,
+    "qty": 0.001451,
+    "note": "Stage4: defensive TF",
+    "tp": 5954617.5,
+    "sl": 5776650.0
+  },
+  {
+    "timestamp": "2025-08-10T12:17:05.573283",
+    "type": "BUY",
+    "ticker": "KRW-ENA",
+    "price": 1019.0,
+    "qty": 8.059013,
+    "note": "Stage4: defensive TF",
+    "tp": 1039.8895,
+    "sl": 1008.81
+  },
+  {
+    "timestamp": "2025-08-10T17:18:55.724791",
+    "type": "BUY",
+    "ticker": "KRW-ENS",
+    "price": 39840.0,
+    "qty": 0.205574,
+    "note": "Stage4: defensive TF",
+    "tp": 40656.72,
+    "sl": 39441.6
+  }
+]

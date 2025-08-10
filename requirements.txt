@@ -1,0 +1,5 @@
+pandas>=2.0.0
+numpy>=1.24.0
+pyupbit>=0.2.33
+python-telegram-bot>=20.0
+python-dotenv>=1.0.0
