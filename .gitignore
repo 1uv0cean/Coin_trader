@@ -1,1 +1,5 @@
 .env
+*.pyc
+__pycache__/
+*.csv
+*.json

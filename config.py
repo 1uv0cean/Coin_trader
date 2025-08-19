@@ -26,8 +26,8 @@ class Config:
     MIN_ORDER_AMOUNT: float = float(os.getenv('MIN_ORDER_AMOUNT', '5500'))
     
     # 리스크 관리
-    MAX_POSITION_PCT: float = float(os.getenv('MAX_POSITION_PCT', '0.20'))
-    MAX_TRADE_RISK_PCT: float = float(os.getenv('MAX_TRADE_RISK_PCT', '0.02'))
+    MAX_POSITION_PCT: float = float(os.getenv('MAX_POSITION_PCT', '0.25'))
+    MAX_TRADE_RISK_PCT: float = float(os.getenv('MAX_TRADE_RISK_PCT', '0.03'))
     DAILY_LOSS_LIMIT_PCT: float = float(os.getenv('DAILY_LOSS_LIMIT_PCT', '0.05'))
     
     # 백테스트 설정

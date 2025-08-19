@@ -13,7 +13,8 @@ class StrategyOptimizer:
         self.best_params = None
         self.optimization_results = []
         
-    def generate_sample_data(self, periods: int = 1000) -> pd.DataFrame:
+    @staticmethod
+    def generate_sample_data(periods: int = 1000) -> pd.DataFrame:
         dates = pd.date_range(start='2024-01-01', periods=periods, freq='5min')
         
         np.random.seed(42)
