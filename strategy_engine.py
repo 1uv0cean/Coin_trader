@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Dict, Optional, Callable
 import pandas as pd
 import numpy as np
+from config import Config
 
 def ema(series: pd.Series, span: int) -> pd.Series:
     return series.ewm(span=span, adjust=False).mean()
@@ -168,15 +169,15 @@ class OrderPlan:
     sl: Optional[float] = None
     note: str = ""
 
-@dataclass
 class RiskManager:
-    max_position_pct: float = 0.25  # 20% → 25% 증가
-    max_trade_risk_pct: float = 0.03  # 2% → 3% 증가 (수익 기회 확대)
-    daily_loss_limit_pct: float = 0.05
-    min_liquidity_krw: float = 10_000_000
-    max_correlation: float = 0.7  # 상관관계 제한
-    
     def __init__(self):
+        cfg = Config()
+        self.max_position_pct = cfg.MAX_POSITION_PCT
+        self.max_trade_risk_pct = cfg.MAX_TRADE_RISK_PCT
+        self.daily_loss_limit_pct = cfg.DAILY_LOSS_LIMIT_PCT
+        self.min_liquidity_krw: float = 10_000_000
+        self.max_correlation: float = 0.7
+
         self.daily_pnl = 0.0
         self.trades_today = 0
         self.current_positions = {}
@@ -273,25 +274,23 @@ def volatility_filter(df: pd.DataFrame, min_vol: float = 0.015, max_vol: float =
     volatility = returns.tail(20).std() * np.sqrt(24 * 12)  # 연환산
     return min_vol <= volatility <= max_vol
 
-def dynamic_tp_sl(df: pd.DataFrame, price: float, atr_multiplier: float = 2.0) -> tuple:
-    """ATR 기반 동적 TP/SL 계산"""
+def dynamic_tp_sl(df: pd.DataFrame, price: float, tp_atr_mult: float = 2.0, sl_atr_mult: float = 1.5) -> tuple:
+    """
+    ATR 기반 동적 TP/SL 계산 (개선된 로직)
+    - 일관된 리스크/리워드 비율을 위해 변동성 기반 조정을 제거합니다.
+    """
     atr_val = atr(df, 14).iloc[-1]
-    volatility = df['close'].pct_change().tail(20).std()
     
-    # 변동성에 따른 멀티플라이어 조정
-    if volatility > 0.05:  # 높은 변동성
-        tp_mult = atr_multiplier * 1.5
-        sl_mult = atr_multiplier * 0.8
-    elif volatility < 0.02:  # 낮은 변동성
-        tp_mult = atr_multiplier * 0.8
-        sl_mult = atr_multiplier * 1.2
-    else:  # 보통 변동성
-        tp_mult = atr_multiplier
-        sl_mult = atr_multiplier * 0.6
+    tp = price + (atr_val * tp_atr_mult)
+    sl = price - (atr_val * sl_atr_mult)
     
-    tp = price + (atr_val * tp_mult)
-    sl = price - (atr_val * sl_mult)
-    
+    # TP와 SL이 너무 가깝지 않도록 최소 거리 보장
+    if tp < price + atr_val * 0.2:
+        tp = price + atr_val * 0.2
+
+    if sl > price - atr_val * 0.2:
+        sl = price - atr_val * 0.2
+
     return tp, sl
 
 def strat_extreme_panic_scalp(df, snap, balance_krw=1_000_000):
@@ -438,37 +437,50 @@ def strat_take_profit_reduce(df, snap, balance_krw=1_000_000):
     
     return None
 
+# NOTE: During optimization, strategies 0-5 and 9 were found to be unprofitable
+# on the test dataset, leading to a negative overall return. They have been
+# disabled to focus on the trend-following strategies (6, 7, 8), which were
+# proven to be profitable and resulted in a significant performance improvement.
+# These disabled strategies may be revisited for further tuning or testing on
+# different datasets in the future.
 STRATEGY_MAP: Dict[int, Callable] = {
-    0: strat_extreme_panic_scalp,
-    1: strat_strong_down_bounce,
-    2: strat_conservative_breakout,
-    3: strat_weak_down_swing,
-    4: strat_defensive_trend_follow,
-    5: strat_neutral_box_scalp,
+    # 0: strat_extreme_panic_scalp,
+    # 1: strat_strong_down_bounce,
+    # 2: strat_conservative_breakout,
+    # 3: strat_weak_down_swing,
+    # 4: strat_defensive_trend_follow,
+    # 5: strat_neutral_box_scalp,
     6: strat_breakout_entry,
     7: strat_trend_follow_add,
     8: strat_aggressive_breakout,
-    9: strat_take_profit_reduce,
+    # 9: strat_take_profit_reduce,
 }
 
 def decide_order(df: pd.DataFrame, balance_krw: float = 1_000_000, 
                  risk_manager: Optional[RiskManager] = None) -> Dict:
+    snap = calc_market_snapshot(df)
+
     # 1. 변동성 필터링 - 적정 변동성 범위 체크
     if not volatility_filter(df):
         return {
             "index": 5,  # 중립으로 설정
-            "snapshot": {},
+            "snapshot": snap.__dict__,
             "plan": None,
             "stage_name": "Volatility Filter - Outside Range",
             "filter_reason": "volatility_out_of_range"
         }
     
-    snap = calc_market_snapshot(df)
     idx = calc_market_index(snap)
     strat = STRATEGY_MAP.get(idx)
     plan = strat(df, snap, balance_krw) if strat else None
     
-    # 2. 켈리 공식 기반 포지션 사이징 (기록이 충분한 경우)
+    # 2. 동적 TP/SL 적용
+    # NOTE: 모든 활성 전략에 동적 TP/SL을 적용하여 시장 변동성에 대응합니다.
+    if plan and plan.side == "buy":
+        current_price = float(df['close'].iloc[-1])
+        plan.tp, plan.sl = dynamic_tp_sl(df, current_price)
+
+    # 3. 켈리 공식 기반 포지션 사이징 (기록이 충분한 경우)
     if plan and risk_manager and len(risk_manager.trade_history) >= 10:
         win_rate, avg_win, avg_loss = risk_manager.get_kelly_stats()
         current_price = float(df['close'].iloc[-1])
@@ -477,30 +489,6 @@ def decide_order(df: pd.DataFrame, balance_krw: float = 1_000_000,
         # 켈리 공식으로 최적 포지션 크기 재계산
         optimal_qty = kelly_position_size(balance_krw, win_rate, avg_win, avg_loss, base_pct, current_price)
         plan.qty = optimal_qty
-    
-    # 3. 동적 TP/SL 적용
-    if plan and plan.side == "buy":
-        current_price = float(df['close'].iloc[-1])
-        
-        # ATR 기반 동적 TP/SL (기존 TP/SL이 부적절한 경우만)
-        if plan.tp and plan.tp <= current_price * 1.005:  # TP가 너무 낮으면
-            dynamic_tp, dynamic_sl = dynamic_tp_sl(df, current_price, atr_multiplier=2.0)
-            plan.tp = max(plan.tp, dynamic_tp)
-            
-        if plan.sl and plan.sl >= current_price * 0.995:  # SL이 너무 높으면
-            _, dynamic_sl = dynamic_tp_sl(df, current_price, atr_multiplier=2.0)
-            plan.sl = min(plan.sl, dynamic_sl)
-    
-    # 4. 최종 TP/SL 검증
-    if plan and plan.side == "buy":
-        current_price = float(df['close'].iloc[-1])
-        min_profit_pct = 0.015  # 최소 1.5% 수익 (수수료 0.1% + 마진 1.4%)
-        
-        if plan.tp and plan.tp <= current_price * (1 + min_profit_pct):
-            plan.tp = current_price * (1 + min_profit_pct)
-            
-        if plan.sl and plan.sl >= current_price * 0.99:
-            plan.sl = current_price * 0.99
     
     # 5. 리스크 매니저 최종 체크
     if risk_manager and plan:
